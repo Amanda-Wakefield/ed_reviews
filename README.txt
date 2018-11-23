@@ -1,0 +1,1 @@
+This is the Django REST app from Team Treehouse
