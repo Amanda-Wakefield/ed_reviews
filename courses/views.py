@@ -1,5 +1,10 @@
 from django.shortcuts import get_object_or_404
+
 from rest_framework import generics
+from rest_framework import mixins
+from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from . import models
 from . import serializers
@@ -38,3 +43,29 @@ class RetrieveUpdateDestroyReviewView(generics.RetrieveUpdateDestroyAPIView):
             course_id=self.kwargs.get('course_pk'),
             pk=self.kwargs.get('pk')
         )
+
+
+# this is for the V2 version of the API
+
+class CourseViewSet(viewsets.ModelViewSet):
+    queryset = models.Course.objects.all()
+    serializer_class = serializers.CourseSerializer
+
+    @action(detail=True)
+    def reviews(self, request, pk=None):
+        course = self.get_object()
+        serializer = serializers.ReviewSerializer(
+            course.reviews.all(), many=True
+        )
+        return Response(serializer.data)
+
+
+#model reiview view set that does not do lists
+class ReviewViewSet(mixins.CreateModelMixin,
+                    mixins.RetrieveModelMixin,
+                    mixins.UpdateModelMixin,
+                    mixins.DestroyModelMixin,
+                    viewsets.GenericViewSet):
+    queryset = models.Review.objects.all()
+    serializer_class = serializers.ReviewSerializer
+
