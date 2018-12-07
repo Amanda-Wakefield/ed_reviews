@@ -1,3 +1,5 @@
+from django.db.models import Avg
+
 from rest_framework import serializers
 
 from . import models
@@ -32,12 +34,23 @@ class CourseSerializer(serializers.ModelSerializer):
         read_only=True,
         view_name="apiv2:review-detail"
     )
+    average_rating = serializers.SerializerMethodField()
 
     class Meta:
         fields = (
             'id',
             'title',
             'url',
-            'reviews'
+            'reviews',
+            'average_rating',
         )
         model = models.Course
+
+    '''this is not a good way to do this. should go back and change this to be a 
+    value stored in the database that gets updated each time a new reivew is added'''
+    def get_average_rating(self, obj):
+        average = obj.reviews.aggregate(Avg('rating')).get('rating__avg')
+
+        if average is None:
+            return 0
+        return round(average*2) / 2
